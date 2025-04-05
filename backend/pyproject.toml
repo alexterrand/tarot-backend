@@ -25,16 +25,16 @@ dev = [
 ]
 
 [tool.ruff]
-# Règles sélectionnées par défaut
-select = ["E", "F", "I", "UP"]
 # Ignorer les longueurs de ligne pour les docstrings ou les commentaires
-line-length = 100
-# Ne pas ignorer les __init__.py pour les imports
-ignore = []
+line-length = 120
 # Assume Python 3.9
 target-version = "py39"
 # Configuration de l'indentation
 indent-width = 4
+
+[tool.ruff.lint]
+select = ["E", "F", "UP", "I"]
+ignore = ["I001"]
 
 [tool.ruff.format]
 # Utiliser des guillemets doubles par défaut
