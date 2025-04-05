@@ -26,9 +26,9 @@ dev = [
 
 [tool.ruff]
 # Règles sélectionnées par défaut
-select = ["E", "F", "I", "UP"]
+select = ["E", "F", "UP"]
 # Ignorer les longueurs de ligne pour les docstrings ou les commentaires
-line-length = 100
+line-length = 120
 # Ne pas ignorer les __init__.py pour les imports
 ignore = []
 # Assume Python 3.9

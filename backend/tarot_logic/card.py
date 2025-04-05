@@ -1,6 +1,5 @@
 from enum import Enum
 from dataclasses import dataclass, field
-from typing import Dict
 
 
 class Suit(Enum):
@@ -81,8 +80,8 @@ class Rank(Enum):
 
 
 # Dictionnaires pour la conversion valeur -> Rank (optimisation)
-_STANDARD_RANKS: Dict[int, Rank] = {}
-_TRUMP_RANKS: Dict[int, Rank] = {}
+_STANDARD_RANKS: dict[int, Rank] = {}
+_TRUMP_RANKS: dict[int, Rank] = {}
 
 # Initialisation immédiate des dictionnaires
 for rank in Rank:
