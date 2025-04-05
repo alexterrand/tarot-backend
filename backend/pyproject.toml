@@ -1,0 +1,51 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tarot_app"
+version = "0.1.0"
+description = "Tarot card game with backend logic, API, and Flutter frontend"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = [
+    "fastapi>=0.103.0",
+    "uvicorn[standard]>=0.23.0",
+    "pydantic>=2.3.0",
+]
+[tool.hatch.build.targets.wheel]
+packages = ["app", "tarot_logic"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "httpx>=0.24.1",  # Pour tester FastAPI
+]
+
+[tool.ruff]
+# Règles sélectionnées par défaut
+select = ["E", "F", "I", "UP"]
+# Ignorer les longueurs de ligne pour les docstrings ou les commentaires
+line-length = 100
+# Ne pas ignorer les __init__.py pour les imports
+ignore = []
+# Assume Python 3.9
+target-version = "py39"
+# Configuration de l'indentation
+indent-width = 4
+
+[tool.ruff.format]
+# Utiliser des guillemets doubles par défaut
+quote-style = "double"
+# Indentation de 4 espaces
+indent-style = "space"
+# Ajouter un retour à la ligne à la fin du fichier
+line-ending = "auto"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
