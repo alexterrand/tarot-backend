@@ -100,7 +100,7 @@ class GameState:
         """
         return self.players[self.current_player_index]
     
-    def get_player_by_id(self, player_id: str) -> Optional[Player]:
+    def get_player_by_id(self, player_id: str) -> Player | None:
         """
         Récupère un joueur par son identifiant.
         
