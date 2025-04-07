@@ -1,4 +1,3 @@
-from typing import List, Tuple, Optional
 import random
 from .card import Card, Suit, Rank
 
@@ -11,7 +10,7 @@ class Deck:
         """
         Initialise un jeu de Tarot complet et ordonné.
         """
-        self.cards: List[Card] = []
+        self.cards: list[Card] = []
         
         # Ajouter les cartes de couleur (56 cartes)
         for suit in [Suit.CLUBS, Suit.DIAMONDS, Suit.HEARTS, Suit.SPADES]:
@@ -34,7 +33,7 @@ class Deck:
         """
         random.shuffle(self.cards)
     
-    def deal(self, num_players: int) -> Tuple[List[List[Card]], List[Card]]:
+    def deal(self, num_players: int) -> tuple[list[list[Card]], list[Card]]:
         """
         Distribue les cartes aux joueurs trois par trois et forme le chien.
         
@@ -89,7 +88,7 @@ class Deck:
         
         return hands, dog
     
-    def collect_from_tricks(self, tricks: List[List[Card]], dog: List[Card]) -> None:
+    def collect_from_tricks(self, tricks: list[list[Card]], dog: list[Card]) -> None:
         """
         Récupère les cartes à partir des plis et du chien, sans mélanger.
         

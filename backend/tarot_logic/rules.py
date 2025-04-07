@@ -1,7 +1,6 @@
-from typing import List, Optional
 from .card import Card, Suit
 
-def get_legal_moves(player_hand: List[Card], current_trick: List[Card], trump_suit: Suit = Suit.TRUMP) -> List[Card]:
+def get_legal_moves(player_hand: list[Card], current_trick: list[Card], trump_suit: Suit = Suit.TRUMP) -> list[Card]:
     """
     Détermine les coups légaux pour un joueur dans une situation donnée.
     
@@ -62,7 +61,7 @@ def get_legal_moves(player_hand: List[Card], current_trick: List[Card], trump_su
     # Sinon, le joueur peut jouer n'importe quelle carte (défausse)
     return player_hand.copy()
 
-def get_trick_winner(trick: List[Card], trump_suit: Suit = Suit.TRUMP) -> int:
+def get_trick_winner(trick: list[Card], trump_suit: Suit = Suit.TRUMP) -> int:
     """
     Détermine l'index du joueur qui remporte le pli.
     

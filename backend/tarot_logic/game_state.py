@@ -1,4 +1,3 @@
-from typing import List, Dict, Optional, Tuple
 from .card import Card, Suit
 from .player import Player
 
@@ -7,7 +6,7 @@ class GameState:
     Représente l'état d'une partie de Tarot.
     """
     
-    def __init__(self, player_ids: List[str]):
+    def __init__(self, player_ids: list[str]):
         """
         Initialise une nouvelle partie de Tarot.
         
@@ -20,13 +19,13 @@ class GameState:
         if len(player_ids) not in [3, 4, 5]:
             raise ValueError(f"Nombre de joueurs invalide: {len(player_ids)}. Doit être 3, 4 ou 5.")
         
-        self.players: List[Player] = [Player(player_id) for player_id in player_ids]
+        self.players: list[Player] = [Player(player_id) for player_id in player_ids]
         self.current_player_index: int = 0
-        self.current_trick: List[Card] = []
-        self.dog: List[Card] = []
+        self.current_trick: list[Card] = []
+        self.dog: list[Card] = []
         
         # Stocke les index des joueurs qui ont contribué au pli actuel
-        self.trick_player_indices: List[int] = []
+        self.trick_player_indices: list[int] = []
         
         # Joueur qui a commencé le pli actuel
         self.trick_starter_index: int = 0

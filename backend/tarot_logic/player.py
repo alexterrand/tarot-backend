@@ -1,4 +1,3 @@
-from typing import List, Optional
 from .card import Card
 
 class Player:
@@ -14,10 +13,10 @@ class Player:
             player_id: Identifiant unique du joueur
         """
         self.player_id = player_id
-        self.hand: List[Card] = []
-        self.tricks_won: List[List[Card]] = []
+        self.hand: list[Card] = []
+        self.tricks_won: list[list[Card]] = []
     
-    def add_cards_to_hand(self, cards: List[Card]) -> None:
+    def add_cards_to_hand(self, cards: list[Card]) -> None:
         """
         Ajoute des cartes à la main du joueur.
         
@@ -47,7 +46,7 @@ class Player:
         except ValueError:
             raise ValueError(f"La carte {card} n'est pas dans la main du joueur {self.player_id}")
         
-    def add_trick(self, trick: List[Card]) -> None:
+    def add_trick(self, trick: list[Card]) -> None:
         """
         Ajoute un pli remporté au joueur.
         
