@@ -50,7 +50,8 @@ def get_legal_moves(player_hand: list[Card], current_trick: list[Card], trump_su
         
         # Si un atout a déjà été joué, le joueur doit jouer un atout supérieur s'il en a
         if highest_trump_in_trick and trump_cards:
-            higher_trumps = [card for card in trump_cards if card.rank.get_value() > highest_trump_in_trick.rank.get_value()]
+            minimum_trump= highest_trump_in_trick.rank.get_value()
+            higher_trumps = [card for card in trump_cards if card.rank.get_value() > minimum_trump]
             if higher_trumps:
                 return higher_trumps
         
