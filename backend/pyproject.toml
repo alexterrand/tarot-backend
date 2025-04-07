@@ -7,7 +7,7 @@ name = "tarot_app"
 version = "0.1.0"
 description = "Tarot card game with backend logic, API, and Flutter frontend"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11.4"
 license = { text = "MIT" }
 dependencies = [
     "fastapi>=0.103.0",
