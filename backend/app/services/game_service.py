@@ -1,9 +1,7 @@
 import uuid
-import random
 
 from tarot_logic.deck import Deck
 from tarot_logic.game_state import GameState
-from tarot_logic.player import Player
 from tarot_logic.card import Card, Suit, Rank
 from tarot_logic.rules import get_legal_moves
 

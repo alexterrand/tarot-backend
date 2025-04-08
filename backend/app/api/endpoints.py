@@ -1,6 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, status
-from typing import Dict, Any
-
+from fastapi import APIRouter, HTTPException, status
 from app.models.game import (
     GameCreateRequest, 
     GamePublicState, 
@@ -69,7 +67,7 @@ async def play_card(
     game_id: str, 
     player_id: str, 
     play_request: PlayCardRequest
-) -> Dict[str, Any]:
+) -> dict[str, any]:
     """
     Joue une carte pour un joueur.
     """
