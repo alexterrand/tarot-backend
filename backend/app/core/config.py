@@ -7,10 +7,10 @@ class Settings(BaseSettings):
     """
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "Tarot Game API"
-    BACKEND_CORS_ORIGINS: list[union[str, AnyHttpUrl]] = ["*"]
+    BACKEND_CORS_ORIGINS: list[str | AnyHttpUrl] = ["*"]
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
-    def assemble_cors_origins(cls, v: union[str, list[str]]) -> union[List[str], str]:
+    def assemble_cors_origins(cls, v: str | list[str]) -> list[str] | str:
         """
         Assemble les origines CORS à partir d'une chaîne ou d'une liste.
         """
