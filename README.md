@@ -1,6 +1,6 @@
 # Tarot Game MVP
 
-Un jeu de Tarot traditionnel français avec une interface Flutter et un backend Python.
+Les partie backend python et fastAPI d'un jeu de Tarot traditionnel français.
 
 ## Structure du projet
 
@@ -8,7 +8,6 @@ Un jeu de Tarot traditionnel français avec une interface Flutter et un backend 
   - `app/` : Code source de l'API
   - `tarot_logic/` : Module Python indépendant contenant les règles du jeu
   - `tests/` : Tests unitaires et d'intégration
-- `frontend/` : Application Flutter
 - `docker/` : Configuration Docker pour déploiement
 
 ## Prérequis
