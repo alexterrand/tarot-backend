@@ -15,7 +15,6 @@ Un jeu de Tarot traditionnel français avec une interface Flutter et un backend 
 
 - Python 3.9+
 - uv (pour la gestion des packages Python)
-- Flutter SDK
 - Docker et Docker Compose (pour le déploiement)
 
 ## Installation et mise en route
@@ -38,14 +37,6 @@ ruff format .
 
 # Lancer l'API
 uvicorn app.main:app --reload
-```
-
-### Frontend
-
-```bash
-cd frontend
-flutter pub get
-flutter run
 ```
 
 ### Docker
