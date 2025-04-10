@@ -48,32 +48,3 @@ jobs:
       run: |
         source .venv/bin/activate
         pytest
-  
-  flutter_tests:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
-    
-    steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.10.x'
-        channel: 'stable'
-    
-    - name: Prepare project
-      run: |
-        mkdir -p lib test
-        touch lib/main.dart test/widget_test.dart
-        
-    - name: Install dependencies
-      run: flutter pub get || true
-    
-    - name: Analyze project
-      run: flutter analyze || true
-    
-    - name: Run tests
-      run: flutter test || true

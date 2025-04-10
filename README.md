@@ -13,7 +13,7 @@ Un jeu de Tarot traditionnel français avec une interface Flutter et un backend 
 
 ## Prérequis
 
-- Python 3.11.4
+- Python 3.9+
 - uv (pour la gestion des packages Python)
 - Flutter SDK
 - Docker et Docker Compose (pour le déploiement)
