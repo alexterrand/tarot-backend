@@ -6,13 +6,23 @@ decision-making strategies to be plugged in without modifying the game logic.
 Available Strategies:
     - RandomStrategy: Plays a random legal card
     - NaiveStrategy: Always plays the strongest legal card
+
+Helper Module:
+    - bot_helpers: Reusable functions for special card logic (Petit, Excuse)
 """
 
+from . import bot_helpers
 from .naive_strategy import NaiveStrategy
 from .random_strategy import RandomStrategy
 from .strategy import BotStrategy
 
-__all__ = ["BotStrategy", "RandomStrategy", "NaiveStrategy", "create_strategy"]
+__all__ = [
+    "BotStrategy",
+    "RandomStrategy",
+    "NaiveStrategy",
+    "create_strategy",
+    "bot_helpers",
+]
 
 
 def create_strategy(strategy_name: str) -> BotStrategy:
