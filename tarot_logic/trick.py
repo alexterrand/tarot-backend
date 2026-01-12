@@ -123,9 +123,25 @@ class Trick:
         
         # Cards of the asked suit
         same_suit_cards = [card for card in player_hand if card.suit == asked_suit]
-        
+
         # If player has cards of asked suit, they must play one (or excuse)
         if same_suit_cards:
+            # Special case: if asked suit is TRUMP, must play higher if possible
+            if asked_suit == Suit.TRUMP:
+                highest_trump_in_trick = self.get_highest_trump()
+
+                if highest_trump_in_trick:
+                    minimum_trump_value = highest_trump_in_trick.rank.get_value()
+                    higher_trumps = [card for card in same_suit_cards
+                                   if card.rank.get_value() > minimum_trump_value]
+
+                    # If has higher trumps, must play one (or excuse)
+                    if higher_trumps:
+                        return higher_trumps + excuse_cards
+
+                    # If no higher trumps, can play any trump or excuse
+                    return same_suit_cards + excuse_cards
+
             return same_suit_cards + excuse_cards
         
         # If asked suit is not trump and player has no cards of asked suit
