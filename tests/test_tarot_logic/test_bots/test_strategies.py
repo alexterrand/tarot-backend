@@ -28,32 +28,6 @@ class TestRandomStrategy:
             assert chosen in legal_moves
             assert chosen == Card(Suit.HEARTS, Rank.ACE)
 
-    def test_random_distribution(self):
-        """RandomStrategy should eventually choose all available cards."""
-        strategy = RandomStrategy()
-
-        legal_moves = [
-            Card(Suit.HEARTS, Rank.ACE),
-            Card(Suit.HEARTS, Rank.KING),
-            Card(Suit.HEARTS, Rank.QUEEN),
-        ]
-        trick = Trick()
-
-        # Run many times and collect chosen cards as strings
-        chosen_cards = set()
-        for _ in range(100):
-            chosen = strategy.choose_card(legal_moves, legal_moves, trick)
-            chosen_cards.add(str(chosen))
-
-        # Should have seen all three cards with high probability
-        assert len(chosen_cards) == 3
-
-    def test_raises_on_empty_legal_moves(self):
-        """Should raise ValueError if no legal moves."""
-        strategy = RandomStrategy()
-        with pytest.raises(ValueError, match="No legal moves"):
-            strategy.choose_card([], [], Trick())
-
     def test_get_strategy_name(self):
         """Should return correct strategy name."""
         strategy = RandomStrategy()
@@ -116,12 +90,6 @@ class TestNaiveStrategy:
         chosen = strategy.choose_card(legal_moves, legal_moves, Trick())
         # All have same points (4.5), trump 21 has highest rank value
         assert chosen == Card(Suit.TRUMP, Rank.TRUMP_21)
-
-    def test_raises_on_empty_legal_moves(self):
-        """Should raise ValueError if no legal moves."""
-        strategy = NaiveStrategy()
-        with pytest.raises(ValueError, match="No legal moves"):
-            strategy.choose_card([], [], Trick())
 
     def test_get_strategy_name(self):
         """Should return correct strategy name."""

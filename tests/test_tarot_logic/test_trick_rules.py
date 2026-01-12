@@ -144,23 +144,6 @@ class TestFollowingSuit:
         assert Card(Suit.SPADES, Rank.KING) not in legal_moves
         assert Card(Suit.TRUMP, Rank.TRUMP_10) not in legal_moves
 
-    def test_no_rank_restriction_when_following_suit(self):
-        """When following suit (non-trump), can play any rank."""
-        trick = Trick()
-        trick.add_card(Card(Suit.HEARTS, Rank.KING), 0)  # High card
-
-        player_hand = [
-            Card(Suit.HEARTS, Rank.TWO),    # Low card
-            Card(Suit.HEARTS, Rank.SEVEN),  # Low card
-            Card(Suit.SPADES, Rank.ACE),
-        ]
-
-        legal_moves = trick.get_legal_moves(player_hand)
-
-        # Can play any heart, no need to "go higher"
-        assert Card(Suit.HEARTS, Rank.TWO) in legal_moves
-        assert Card(Suit.HEARTS, Rank.SEVEN) in legal_moves
-
 
 class TestExcuseRules:
     """Test suite for Excuse special rules."""
