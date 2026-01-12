@@ -12,9 +12,10 @@ class NaiveStrategy:
     special cards (Petit and Excuse):
 
     Decision Priority:
-    1. Protect the Petit (1 d'Atout) - Filter if unsafe
-    2. Play Excuse intelligently - On low-value tricks or when cannot win
-    3. Play strongest card - Default greedy behavior
+    1. Play Petit if safe (all opponents played) - Active play for 4.5pts
+    2. Protect Petit if unsafe - Filter from options
+    3. Play Excuse intelligently - On low-value tricks or when cannot win
+    4. Play strongest card - Default greedy behavior
 
     Strength is determined by:
     1. Point value (primary): 0.5 to 4.5 points
@@ -31,9 +32,10 @@ class NaiveStrategy:
         """Choose the best card using special card logic + strength.
 
         Decision flow:
-        1. Filter unsafe Petit from legal moves
-        2. Check if Excuse should be played (low-value trick or cannot win)
-        3. Otherwise, play the strongest remaining card
+        1. Play Petit if safe (all opponents played)
+        2. Filter unsafe Petit from legal moves
+        3. Check if Excuse should be played (low-value trick or cannot win)
+        4. Otherwise, play the strongest remaining card
 
         Args:
             hand: The bot's complete hand of cards
@@ -49,10 +51,15 @@ class NaiveStrategy:
         if not legal_moves:
             raise ValueError("No legal moves available")
 
-        # Step 1: Filter Petit if unsafe to play
+        # Step 1: Check if Petit is safe and present - PLAY IT (priority)
+        petit = next((c for c in legal_moves if bot_helpers.is_petit(c)), None)
+        if petit and bot_helpers.should_play_petit_safe(petit, current_trick):
+            return petit
+
+        # Step 2: Filter Petit if unsafe to play
         safe_moves = bot_helpers.filter_petit_if_unsafe(legal_moves, current_trick)
 
-        # Step 2: Check if Excuse should be prioritized
+        # Step 3: Check if Excuse should be prioritized
         asked_suit = current_trick.get_asked_suit()
         has_asked_suit = bot_helpers.has_asked_suit_in_hand(hand, asked_suit)
 
@@ -63,7 +70,7 @@ class NaiveStrategy:
         if excuse:
             return excuse
 
-        # Step 3: Play strongest card from safe moves
+        # Step 4: Play strongest card from safe moves
         return max(safe_moves, key=self._card_strength)
 
     def _card_strength(self, card: Card) -> tuple[float, int, bool]:

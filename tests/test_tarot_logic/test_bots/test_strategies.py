@@ -96,8 +96,34 @@ class TestNaiveStrategy:
         strategy = NaiveStrategy()
         assert strategy.get_strategy_name() == "bot-naive"
 
-    def test_uses_helpers_for_special_cards(self):
-        """NaiveStrategy should use helpers to protect Petit and play Excuse."""
+    def test_plays_petit_when_safe(self):
+        """NaiveStrategy should actively play Petit when safe (all opponents played)."""
+        strategy = NaiveStrategy()
+
+        # Scenario: Bot is last to play, Petit is safe
+        trick = Trick()
+        trick.add_card(Card(Suit.HEARTS, Rank.ACE), 0)
+        trick.add_card(Card(Suit.HEARTS, Rank.KING), 1)
+        trick.add_card(Card(Suit.HEARTS, Rank.QUEEN), 2)
+        # Bot is player 3 (last), all opponents have played
+
+        hand = [
+            Card(Suit.TRUMP, Rank.TRUMP_1),   # Petit (SAFE - should play)
+            Card(Suit.TRUMP, Rank.TRUMP_15),  # Stronger trump
+        ]
+        legal_moves = [
+            Card(Suit.TRUMP, Rank.TRUMP_1),
+            Card(Suit.TRUMP, Rank.TRUMP_15),
+        ]
+
+        chosen = strategy.choose_card(hand, legal_moves, trick)
+
+        # Should play Petit (safe and priority to get 4.5pts)
+        # NOT Trump 15 even though it's stronger
+        assert chosen == Card(Suit.TRUMP, Rank.TRUMP_1)
+
+    def test_protects_petit_when_unsafe(self):
+        """NaiveStrategy should protect Petit when unsafe and play Excuse instead."""
         strategy = NaiveStrategy()
 
         # Scenario: Petit in hand but unsafe (trump 10 already played)
