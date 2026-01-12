@@ -58,6 +58,9 @@ class GameService:
         # Enregistrer le joueur humain
         self.human_players[game_id] = {human_player_id: human_player_id}
         
+        print(f"Nouvelle partie créée: {game_id}")
+        print(f"Joueur humain: {human_player_id}")
+        
         return game_id
     
     def get_game_state(self, game_id: str) -> GamePublicState | None:
@@ -129,6 +132,31 @@ class GameService:
             cards=cards
         )
     
+    def get_legal_moves(self, game_id: str, player_id: str) -> list[CardModel]:
+        """
+        Récupère les coups légaux pour un joueur.
+        
+        Args:
+            game_id: ID de la partie
+            player_id: ID du joueur
+            
+        Returns:
+            Liste des coups légaux (cartes jouables)
+        """
+        game_state = self.games.get(game_id)
+        if not game_state:
+            return []
+        
+        player = game_state.get_player_by_id(player_id)
+        if not player:
+            return []
+        
+        # Récupérer les coups légaux
+        legal_moves = get_legal_moves(player.hand, game_state.current_trick)
+        
+        # Convertir en modèles de cartes
+        return [self._convert_card_to_model(card) for card in legal_moves]
+    
     def play_card(self, game_id: str, player_id: str, card_model: CardModel) -> tuple[bool, str]:
         """
         Joue une carte pour un joueur.
@@ -155,22 +183,37 @@ class GameService:
         if not card:
             return False, "Carte invalide"
         
-        # Vérifier que le joueur a cette carte
-        if not current_player.has_card(card):
-            return False, "Vous n'avez pas cette carte"
-        
-        # Vérifier que le coup est légal
+        # Simplification: vérifier que le coup est légal
         legal_moves = get_legal_moves(current_player.hand, game_state.current_trick)
         if card not in legal_moves:
             return False, "Ce coup n'est pas légal"
         
         # Jouer la carte
         try:
-            game_state.play_card(game_state.current_player_index, card)
+            # Ajoutons des logs explicites
+            print(f"Joueur {player_id} joue la carte {card}")
+            print(f"Pli avant: {game_state.current_trick}")
             
-            # Si le pli est complet, on attend un peu avant de passer au joueur suivant
-            # Sinon, faire jouer automatiquement les joueurs IA
-            if not game_state.current_trick and not game_state.is_game_over():
+            # Jouer la carte
+            old_trick_size = len(game_state.current_trick)
+            game_state.play_card(game_state.current_player_index, card)
+            new_trick_size = len(game_state.current_trick)
+            
+            print(f"Pli après: {game_state.current_trick}")
+            print(f"Taille du pli: {old_trick_size} -> {new_trick_size}")
+            print(f"Tour du joueur: {game_state.get_current_player().player_id}")
+            
+            # Si un pli complet vient d'être joué, le pli courant sera vide
+            pli_complete = new_trick_size == 0 and old_trick_size > 0
+            print(f"Pli complet? {pli_complete}")
+            
+            # Modification de la condition pour que les IA jouent:
+            # Faire jouer les IA quand ce n'est pas le tour d'un joueur humain
+            current_player_id = game_state.get_current_player().player_id
+            is_human_turn = current_player_id in self.human_players.get(game_id, {})
+            
+            if not is_human_turn and not game_state.is_game_over():
+                print("C'est au tour des IA de jouer")
                 self._play_ai_turns(game_id)
             
             return True, "Carte jouée avec succès"
@@ -184,32 +227,53 @@ class GameService:
         Args:
             game_id: ID de la partie
         """
+        print(f"Début des tours IA pour le jeu {game_id}")
+        print(f"Joueurs humains: {self.human_players.get(game_id, {})}")
+        
         game_state = self.games.get(game_id)
         if not game_state or game_state.is_game_over():
+            print("Fin prématurée: jeu terminé ou non trouvé")
             return
         
         # Jouer tant que c'est le tour d'un joueur IA
         while not game_state.is_game_over():
             current_player = game_state.get_current_player()
+            current_player_id = current_player.player_id
+            
+            print(f"Tour actuel: joueur {current_player_id}")
             
             # Si c'est un joueur humain, on s'arrête
-            if current_player.player_id in self.human_players.get(game_id, {}):
+            if current_player_id in self.human_players.get(game_id, {}):
+                print(f"Arrêt des tours IA: tour du joueur humain {current_player_id}")
                 break
             
             # Sinon, on fait jouer l'IA
             legal_moves = get_legal_moves(current_player.hand, game_state.current_trick)
+            print(f"Coups légaux pour {current_player_id}: {len(legal_moves)} cartes")
+            
             if not legal_moves:
+                print(f"Pas de coup légal pour {current_player_id}")
                 break  # Ne devrait pas arriver en théorie
             
             # Stratégie simple: jouer la première carte légale
             card_to_play = legal_moves[0]
+            print(f"L'IA {current_player_id} joue {card_to_play}")
             
             # Jouer la carte
+            old_trick_size = len(game_state.current_trick)
             game_state.play_card(game_state.current_player_index, card_to_play)
+            new_trick_size = len(game_state.current_trick)
             
-            # Si le pli est complet, on s'arrête pour laisser le client voir le résultat
-            if not game_state.current_trick and not game_state.is_game_over():
-                break
+            print(f"Pli après jeu de l'IA: {game_state.current_trick}")
+            print(f"Taille du pli: {old_trick_size} -> {new_trick_size}")
+            
+            # Attendre un peu entre chaque coup de l'IA pour que le joueur puisse voir les cartes
+            # Dans une vraie implémentation, on utiliserait un délai adapté à l'interface
+            
+            # Si le pli est complet (vide après avoir été rempli), on peut continuer avec les IA
+            pli_complete = new_trick_size == 0 and old_trick_size > 0
+            if pli_complete:
+                print("Pli complet, l'IA continue à jouer si c'est son tour")
     
     def _convert_card_to_model(self, card: Card) -> CardModel:
         """

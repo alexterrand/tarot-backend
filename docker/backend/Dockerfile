@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
@@ -6,7 +6,8 @@ WORKDIR /app
 RUN pip install uv
 
 # Copier les fichiers de dépendances
-COPY backend/pyproject.toml .
+COPY pyproject.toml .
+COPY README.md .
 
 # Créer un environnement virtuel et installer les dépendances
 RUN uv venv .venv \
@@ -14,8 +15,8 @@ RUN uv venv .venv \
     && uv pip install -e .
 
 # Copier le code de l'application
-COPY backend/app ./app
-COPY backend/tarot_logic ./tarot_logic
+COPY app ./app
+COPY tarot_logic ./tarot_logic
 
 # Exposer le port
 EXPOSE 8000

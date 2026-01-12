@@ -94,7 +94,6 @@ for rank in Rank:
         elif 100 <= value <= 121:  # Atouts
             _TRUMP_RANKS[value - 100] = rank
 
-
 def rank_from_int(value: int, is_trump: bool = False) -> Rank:
     """
     Crée un Rank à partir d'une valeur entière.
@@ -206,3 +205,25 @@ class Card:
         if self.rank in rank_names:
             return f"{rank_names[self.rank]} de {self.suit.value}"
         return f"{self._rank_value} de {self.suit.value}"
+    
+    def get_points(self) -> float:
+        """Retourne la valeur en points de la carte pour le score."""
+        # Les Bouts (Oudlers)
+        is_oudler = (self.suit == Suit.EXCUSE) or \
+                    (self.suit == Suit.TRUMP and self.rank in [Rank.TRUMP_1, Rank.TRUMP_21])
+        
+        if is_oudler:
+            return 4.5
+        
+        # Les têtes
+        if self.rank == Rank.KING:
+            return 4.5
+        if self.rank == Rank.QUEEN:
+            return 3.5
+        if self.rank == Rank.KNIGHT:
+            return 2.5
+        if self.rank == Rank.JACK:
+            return 1.5
+            
+        # Toutes les autres cartes
+        return 0.5

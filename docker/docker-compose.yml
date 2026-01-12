@@ -8,8 +8,8 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ../backend/app:/app/app
-      - ../backend/tarot_logic:/app/tarot_logic
+      - ../app:/app/app
+      - ../tarot_logic:/app/tarot_logic
     restart: unless-stopped
     environment:
       - DEBUG=1

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
+from typing import Any
 from app.models.game import (
     GameCreateRequest, 
     GamePublicState, 
@@ -13,7 +14,7 @@ from app.services.game_service import GameService
 game_service = GameService()
 
 # Créer le routeur
-router = APIRouter()
+router = APIRouter(prefix="/api/v1")
 
 
 @router.post("/games", response_model=GameCreatedResponse, status_code=status.HTTP_201_CREATED)
@@ -67,7 +68,7 @@ async def play_card(
     game_id: str, 
     player_id: str, 
     play_request: PlayCardRequest
-) -> dict[str, any]:
+) -> dict[str, Any]:
     """
     Joue une carte pour un joueur.
     """

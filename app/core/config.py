@@ -1,4 +1,5 @@
-from pydantic import AnyHttpUrl, BaseSettings, validator
+from pydantic import AnyHttpUrl, field_validator
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -9,7 +10,8 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Tarot Game API"
     BACKEND_CORS_ORIGINS: list[str | AnyHttpUrl] = ["*"]
 
-    @validator("BACKEND_CORS_ORIGINS", pre=True)
+    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
+    @classmethod
     def assemble_cors_origins(cls, v: str | list[str]) -> list[str] | str:
         """
         Assemble les origines CORS à partir d'une chaîne ou d'une liste.

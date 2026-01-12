@@ -1,3 +1,4 @@
+from typing import List
 from .card import Card, Suit
 from .player import Player
 
@@ -64,7 +65,7 @@ class GameState:
         """
         Termine le pli actuel, détermine le gagnant et prépare le prochain pli.
         """
-        from .rules import get_trick_winner  # Import ici pour éviter les imports circulaires
+        from rules import get_trick_winner  # Import ici pour éviter les imports circulaires
         
         # Déterminer le gagnant du pli
         winner_card_index = get_trick_winner(self.current_trick, Suit.TRUMP)
@@ -114,3 +115,34 @@ class GameState:
             if player.player_id == player_id:
                 return player
         return None
+    
+    def count_points(self, cards: List[Card]) -> float:
+        """Count the total points in a list of cards."""
+        return sum(card.get_points() for card in cards)
+    
+    def count_oudlers(self, cards: List[Card]) -> int:
+        """Count the number of oudlers in a list of cards."""
+        oudlers = 0
+        for card in cards:
+            if card.suit == Suit.ATOUT and card.value in [0, 1, 21]:
+                oudlers += 1
+        return oudlers
+    
+    def get_points_needed(self, oudlers_count: int) -> float:
+        """Get the points needed to win based on oudlers count."""
+        thresholds = {
+            0: 56,
+            1: 51,
+            2: 41,
+            3: 36
+        }
+        return thresholds.get(oudlers_count, 56)
+    
+    def check_taker_victory(self) -> bool:
+        """Check if the taker won the game."""
+        # Assuming self.taker_cards contains the taker's won tricks
+        taker_points = self.count_points(self.taker_cards)
+        taker_oudlers = self.count_oudlers(self.taker_cards)
+        points_needed = self.get_points_needed(taker_oudlers)
+        
+        return taker_points > points_needed
