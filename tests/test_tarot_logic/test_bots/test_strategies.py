@@ -96,6 +96,32 @@ class TestNaiveStrategy:
         strategy = NaiveStrategy()
         assert strategy.get_strategy_name() == "bot-naive"
 
+    def test_uses_helpers_for_special_cards(self):
+        """NaiveStrategy should use helpers to protect Petit and play Excuse."""
+        strategy = NaiveStrategy()
+
+        # Scenario: Petit in hand but unsafe (trump 10 already played)
+        trick = Trick()
+        trick.add_card(Card(Suit.HEARTS, Rank.ACE), 0)
+        trick.add_card(Card(Suit.TRUMP, Rank.TRUMP_10), 1)
+
+        hand = [
+            Card(Suit.TRUMP, Rank.TRUMP_1),   # Petit (unsafe)
+            Card(Suit.TRUMP, Rank.TRUMP_5),
+            Card(Suit.EXCUSE, Rank.EXCUSE),
+        ]
+        legal_moves = [
+            Card(Suit.TRUMP, Rank.TRUMP_1),
+            Card(Suit.TRUMP, Rank.TRUMP_5),
+            Card(Suit.EXCUSE, Rank.EXCUSE),
+        ]
+
+        chosen = strategy.choose_card(hand, legal_moves, trick)
+
+        # Should play Excuse (low value trick + cannot win)
+        # NOT Petit (unsafe) or Trump 5 (would waste trump)
+        assert chosen == Card(Suit.EXCUSE, Rank.EXCUSE)
+
 
 class TestStrategyFactory:
     """Test suite for create_strategy factory function."""

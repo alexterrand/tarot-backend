@@ -1,14 +1,20 @@
 """Naive bot strategy implementation."""
 
+from . import bot_helpers
 from ..card import Card, Suit
 from ..trick import Trick
 
 
 class NaiveStrategy:
-    """Bot strategy that always plays the strongest legal card.
+    """Bot strategy that plays the strongest legal card with special card logic.
 
-    This strategy implements a simple "greedy" approach: always play the card
-    with the highest value, based on a multi-criteria strength calculation.
+    This strategy implements a "greedy" approach with smart handling of
+    special cards (Petit and Excuse):
+
+    Decision Priority:
+    1. Protect the Petit (1 d'Atout) - Filter if unsafe
+    2. Play Excuse intelligently - On low-value tricks or when cannot win
+    3. Play strongest card - Default greedy behavior
 
     Strength is determined by:
     1. Point value (primary): 0.5 to 4.5 points
@@ -22,15 +28,20 @@ class NaiveStrategy:
         legal_moves: list[Card],
         current_trick: Trick,
     ) -> Card:
-        """Choose the strongest card from the available legal moves.
+        """Choose the best card using special card logic + strength.
+
+        Decision flow:
+        1. Filter unsafe Petit from legal moves
+        2. Check if Excuse should be played (low-value trick or cannot win)
+        3. Otherwise, play the strongest remaining card
 
         Args:
-            hand: The bot's complete hand of cards (unused in naive selection)
+            hand: The bot's complete hand of cards
             legal_moves: Cards the bot can legally play
-            current_trick: The current trick state (unused in naive selection)
+            current_trick: The current trick state
 
         Returns:
-            The strongest card from legal_moves based on the strength metric
+            The best card to play based on the decision flow
 
         Raises:
             ValueError: If legal_moves is empty
@@ -38,7 +49,22 @@ class NaiveStrategy:
         if not legal_moves:
             raise ValueError("No legal moves available")
 
-        return max(legal_moves, key=self._card_strength)
+        # Step 1: Filter Petit if unsafe to play
+        safe_moves = bot_helpers.filter_petit_if_unsafe(legal_moves, current_trick)
+
+        # Step 2: Check if Excuse should be prioritized
+        asked_suit = current_trick.get_asked_suit()
+        has_asked_suit = bot_helpers.has_asked_suit_in_hand(hand, asked_suit)
+
+        excuse = bot_helpers.prioritize_excuse_on_low_value_trick(
+            safe_moves, current_trick, hand, has_asked_suit
+        )
+
+        if excuse:
+            return excuse
+
+        # Step 3: Play strongest card from safe moves
+        return max(safe_moves, key=self._card_strength)
 
     def _card_strength(self, card: Card) -> tuple[float, int, bool]:
         """Calculate card strength for comparison.
