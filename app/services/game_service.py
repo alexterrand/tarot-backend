@@ -4,6 +4,7 @@ from tarot_logic.deck import Deck
 from tarot_logic.game_state import GameState
 from tarot_logic.card import Card, Suit, Rank
 from tarot_logic.rules import get_legal_moves
+from tarot_logic.bots import create_strategy
 
 from app.models.game import CardModel, PlayerModel, GamePublicState, PlayerHandModel
 from app.services.game_logger_service import game_logger_service
@@ -18,15 +19,23 @@ class GameService:
         """Initialise le service avec un dictionnaire vide de parties."""
         self.games: dict[str, GameState] = {}
         self.human_players: dict[str, dict[str, str]] = {}  # game_id -> {player_id -> human_id}
+        self.bot_strategies: dict[str, dict[str, str]] = {}  # game_id -> {player_id -> strategy_name}
     
-    def create_game(self, num_players: int, human_player_id: str = "player_1") -> str:
+    def create_game(
+        self,
+        num_players: int,
+        human_player_id: str = "player_1",
+        bot_strategies: dict[str, str] | None = None,
+    ) -> str:
         """
         Crée une nouvelle partie de Tarot.
-        
+
         Args:
             num_players: Nombre de joueurs (3-5)
             human_player_id: ID du joueur humain
-            
+            bot_strategies: Optional mapping of player IDs to strategy names
+                          (e.g., {"player_2": "bot-naive", "player_3": "bot-random"})
+
         Returns:
             ID unique de la partie créée
         """
@@ -59,8 +68,18 @@ class GameService:
         # Enregistrer le joueur humain
         self.human_players[game_id] = {human_player_id: human_player_id}
 
+        # Store bot strategies (if provided, otherwise default to "bot-random")
+        if bot_strategies:
+            self.bot_strategies[game_id] = bot_strategies
+        else:
+            # Default: all non-human players use bot-random
+            self.bot_strategies[game_id] = {
+                pid: "bot-random" for pid in player_ids if pid != human_player_id
+            }
+
         print(f"Nouvelle partie créée: {game_id}")
         print(f"Joueur humain: {human_player_id}")
+        print(f"Stratégies de bots: {self.bot_strategies[game_id]}")
 
         # Start Supabase logging
         initial_hands = {player.player_id: list(player.hand) for player in game_state.players}
@@ -300,9 +319,17 @@ class GameService:
                 print(f"Pas de coup légal pour {current_player_id}")
                 break  # Ne devrait pas arriver en théorie
 
-            # Stratégie simple: jouer la première carte légale
-            card_to_play = legal_moves[0]
-            print(f"L'IA {current_player_id} joue {card_to_play}")
+            # Get bot strategy for this player
+            strategy_name = self.bot_strategies.get(game_id, {}).get(
+                current_player_id, "bot-random"
+            )
+            strategy = create_strategy(strategy_name)
+
+            # Use strategy to choose card
+            card_to_play = strategy.choose_card(
+                current_player.hand, legal_moves, game_state.current_trick
+            )
+            print(f"L'IA {current_player_id} ({strategy_name}) joue {card_to_play}")
 
             # Log AI card play BEFORE playing
             hand_before = list(current_player.hand)
@@ -317,7 +344,7 @@ class GameService:
                 legal_moves=legal_moves,
                 trick_state_before=trick_state_before,
                 position_in_trick=position_in_trick,
-                strategy_name="bot-random",  # V1 AI is random (first legal move)
+                strategy_name=strategy_name,  # Use actual strategy name
             )
 
             # Capture trick data BEFORE playing
