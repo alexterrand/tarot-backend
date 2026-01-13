@@ -6,6 +6,7 @@ from tarot_logic.card import Card, Suit, Rank
 from tarot_logic.rules import get_legal_moves
 
 from app.models.game import CardModel, PlayerModel, GamePublicState, PlayerHandModel
+from app.services.game_logger_service import game_logger_service
 
 
 class GameService:
@@ -54,13 +55,17 @@ class GameService:
         
         # Stocker l'état de jeu
         self.games[game_id] = game_state
-        
+
         # Enregistrer le joueur humain
         self.human_players[game_id] = {human_player_id: human_player_id}
-        
+
         print(f"Nouvelle partie créée: {game_id}")
         print(f"Joueur humain: {human_player_id}")
-        
+
+        # Start Supabase logging
+        initial_hands = {player.player_id: list(player.hand) for player in game_state.players}
+        game_logger_service.start_game_logging(game_id, game_state, initial_hands)
+
         return game_id
     
     def get_game_state(self, game_id: str) -> GamePublicState | None:
@@ -193,29 +198,69 @@ class GameService:
             # Ajoutons des logs explicites
             print(f"Joueur {player_id} joue la carte {card}")
             print(f"Pli avant: {game_state.current_trick}")
-            
-            # Jouer la carte
+
+            # Log card play BEFORE playing (capture state)
+            hand_before = list(current_player.hand)
+            trick_state_before = list(game_state.current_trick)
+            position_in_trick = len(trick_state_before)
+
+            game_logger_service.log_card_played(
+                game_id=game_id,
+                player_id=player_id,
+                card=card,
+                hand_before=hand_before,
+                legal_moves=legal_moves,
+                trick_state_before=trick_state_before,
+                position_in_trick=position_in_trick,
+                strategy_name="human",  # Human player
+            )
+
+            # Capture trick data BEFORE playing (for logging if trick completes)
             old_trick_size = len(game_state.current_trick)
+            trick_cards_before_play = list(game_state.current_trick)
+            trick_player_indices_before_play = list(game_state.trick_player_indices)
+            current_player_index_before_play = game_state.current_player_index
+
+            # Play the card
             game_state.play_card(game_state.current_player_index, card)
             new_trick_size = len(game_state.current_trick)
             
             print(f"Pli après: {game_state.current_trick}")
             print(f"Taille du pli: {old_trick_size} -> {new_trick_size}")
             print(f"Tour du joueur: {game_state.get_current_player().player_id}")
-            
+
             # Si un pli complet vient d'être joué, le pli courant sera vide
             pli_complete = new_trick_size == 0 and old_trick_size > 0
             print(f"Pli complet? {pli_complete}")
+
+            # Log trick completion
+            if pli_complete:
+                # Reconstruct full trick (add the card that was just played)
+                full_trick_cards = trick_cards_before_play + [card]
+                full_trick_player_indices = trick_player_indices_before_play + [current_player_index_before_play]
+                winner_player_id = game_state.get_current_player().player_id  # Winner starts next trick
+
+                game_logger_service.log_trick_completed(
+                    game_id=game_id,
+                    trick_cards=full_trick_cards,
+                    trick_player_indices=full_trick_player_indices,
+                    winner_player_id=winner_player_id,
+                    game_state=game_state,
+                )
             
             # Modification de la condition pour que les IA jouent:
             # Faire jouer les IA quand ce n'est pas le tour d'un joueur humain
             current_player_id = game_state.get_current_player().player_id
             is_human_turn = current_player_id in self.human_players.get(game_id, {})
-            
-            if not is_human_turn and not game_state.is_game_over():
+
+            # Check if game ended
+            if game_state.is_game_over():
+                print("Partie terminée!")
+                game_logger_service.end_game_logging(game_id, game_state)
+            elif not is_human_turn:
                 print("C'est au tour des IA de jouer")
                 self._play_ai_turns(game_id)
-            
+
             return True, "Carte jouée avec succès"
         except ValueError as e:
             return False, str(e)
@@ -250,30 +295,67 @@ class GameService:
             # Sinon, on fait jouer l'IA
             legal_moves = get_legal_moves(current_player.hand, game_state.current_trick)
             print(f"Coups légaux pour {current_player_id}: {len(legal_moves)} cartes")
-            
+
             if not legal_moves:
                 print(f"Pas de coup légal pour {current_player_id}")
                 break  # Ne devrait pas arriver en théorie
-            
+
             # Stratégie simple: jouer la première carte légale
             card_to_play = legal_moves[0]
             print(f"L'IA {current_player_id} joue {card_to_play}")
-            
-            # Jouer la carte
+
+            # Log AI card play BEFORE playing
+            hand_before = list(current_player.hand)
+            trick_state_before = list(game_state.current_trick)
+            position_in_trick = len(trick_state_before)
+
+            game_logger_service.log_card_played(
+                game_id=game_id,
+                player_id=current_player_id,
+                card=card_to_play,
+                hand_before=hand_before,
+                legal_moves=legal_moves,
+                trick_state_before=trick_state_before,
+                position_in_trick=position_in_trick,
+                strategy_name="bot-random",  # V1 AI is random (first legal move)
+            )
+
+            # Capture trick data BEFORE playing
             old_trick_size = len(game_state.current_trick)
+            trick_cards_before_play = list(game_state.current_trick)
+            trick_player_indices_before_play = list(game_state.trick_player_indices)
+            current_player_index_before_play = game_state.current_player_index
+
+            # Play the card
             game_state.play_card(game_state.current_player_index, card_to_play)
             new_trick_size = len(game_state.current_trick)
             
             print(f"Pli après jeu de l'IA: {game_state.current_trick}")
             print(f"Taille du pli: {old_trick_size} -> {new_trick_size}")
-            
-            # Attendre un peu entre chaque coup de l'IA pour que le joueur puisse voir les cartes
-            # Dans une vraie implémentation, on utiliserait un délai adapté à l'interface
-            
-            # Si le pli est complet (vide après avoir été rempli), on peut continuer avec les IA
+
+            # Check trick completion and log
             pli_complete = new_trick_size == 0 and old_trick_size > 0
             if pli_complete:
                 print("Pli complet, l'IA continue à jouer si c'est son tour")
+
+                # Reconstruct full trick and log
+                full_trick_cards = trick_cards_before_play + [card_to_play]
+                full_trick_player_indices = trick_player_indices_before_play + [current_player_index_before_play]
+                winner_player_id = game_state.get_current_player().player_id
+
+                game_logger_service.log_trick_completed(
+                    game_id=game_id,
+                    trick_cards=full_trick_cards,
+                    trick_player_indices=full_trick_player_indices,
+                    winner_player_id=winner_player_id,
+                    game_state=game_state,
+                )
+
+            # Check if game ended
+            if game_state.is_game_over():
+                print("Partie terminée (IA)")
+                game_logger_service.end_game_logging(game_id, game_state)
+                break
     
     def _convert_card_to_model(self, card: Card) -> CardModel:
         """

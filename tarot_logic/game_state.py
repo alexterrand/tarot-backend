@@ -65,7 +65,7 @@ class GameState:
         """
         Termine le pli actuel, détermine le gagnant et prépare le prochain pli.
         """
-        from rules import get_trick_winner  # Import ici pour éviter les imports circulaires
+        from .rules import get_trick_winner  # Import ici pour éviter les imports circulaires
         
         # Déterminer le gagnant du pli
         winner_card_index = get_trick_winner(self.current_trick, Suit.TRUMP)
