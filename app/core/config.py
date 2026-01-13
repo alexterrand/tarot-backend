@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Tarot Game API"
     BACKEND_CORS_ORIGINS: list[str | AnyHttpUrl] = ["*"]
 
+    # Supabase configuration
+    SUPABASE_URL: str = ""
+    SUPABASE_KEY: str = ""
+
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: str | list[str]) -> list[str] | str:
