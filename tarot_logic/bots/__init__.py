@@ -15,12 +15,16 @@ from . import bot_helpers
 from .naive_strategy import NaiveStrategy
 from .random_strategy import RandomStrategy
 from .strategy import BotStrategy
+from .bidding_strategy import PointBasedBiddingStrategy, RandomBiddingStrategy
+from .dog_discard_strategy import MaxPointsDiscardStrategy, RandomDiscardStrategy
 
 __all__ = [
     "BotStrategy",
     "RandomStrategy",
     "NaiveStrategy",
     "create_strategy",
+    "create_bidding_strategy",
+    "create_dog_discard_strategy",
     "bot_helpers",
 ]
 
@@ -54,6 +58,58 @@ def create_strategy(strategy_name: str) -> BotStrategy:
         available = ", ".join(strategies.keys())
         raise ValueError(
             f"Unknown strategy: '{strategy_name}'. Available strategies: {available}"
+        )
+
+    return strategies[strategy_name]
+
+
+def create_bidding_strategy(strategy_name: str):
+    """Factory function to create bidding strategies.
+
+    Args:
+        strategy_name: Name of the bidding strategy ('point-based', 'random')
+
+    Returns:
+        Instance of the requested bidding strategy
+
+    Raises:
+        ValueError: If strategy_name is unknown
+    """
+    strategies = {
+        "point-based": PointBasedBiddingStrategy(),
+        "random": RandomBiddingStrategy(),
+    }
+
+    if strategy_name not in strategies:
+        available = ", ".join(strategies.keys())
+        raise ValueError(
+            f"Unknown bidding strategy: '{strategy_name}'. Available: {available}"
+        )
+
+    return strategies[strategy_name]
+
+
+def create_dog_discard_strategy(strategy_name: str):
+    """Factory function to create dog discard strategies.
+
+    Args:
+        strategy_name: Name of the discard strategy ('max-points', 'random')
+
+    Returns:
+        Instance of the requested discard strategy
+
+    Raises:
+        ValueError: If strategy_name is unknown
+    """
+    strategies = {
+        "max-points": MaxPointsDiscardStrategy(),
+        "random": RandomDiscardStrategy(),
+    }
+
+    if strategy_name not in strategies:
+        available = ", ".join(strategies.keys())
+        raise ValueError(
+            f"Unknown discard strategy: '{strategy_name}'. Available: {available}"
         )
 
     return strategies[strategy_name]

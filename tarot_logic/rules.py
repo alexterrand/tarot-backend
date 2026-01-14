@@ -3,23 +3,26 @@ from .card import Card, Suit
 def get_legal_moves(player_hand: list[Card], current_trick: list[Card], trump_suit: Suit = Suit.TRUMP) -> list[Card]:
     """
     Détermine les coups légaux pour un joueur dans une situation donnée.
-    
+
     Args:
         player_hand: La main du joueur
         current_trick: Le pli en cours
         trump_suit: La couleur d'atout (par défaut Suit.TRUMP)
-    
+
     Returns:
         Liste des cartes que le joueur peut légalement jouer
     """
     # Si la main est vide, pas de coups possibles
     if not player_hand:
         return []
-    
+
+    # L'Excuse peut TOUJOURS être jouée (règle du Tarot français)
+    excuse_card = [card for card in player_hand if card.suit == Suit.EXCUSE]
+
     # Si c'est le début du pli, le joueur peut jouer n'importe quelle carte
     if not current_trick:
         return player_hand.copy()
-    
+
     # Si la première carte jouée est l'excuse
     if current_trick[0].suit == Suit.EXCUSE:
         if len(current_trick) == 1:
@@ -29,13 +32,13 @@ def get_legal_moves(player_hand: list[Card], current_trick: list[Card], trump_su
     else:
         # Déterminer la couleur demandée (la couleur de la première carte jouée)
         asked_suit = current_trick[0].suit
-    
+
     # Liste des cartes que le joueur a dans la couleur demandée
     same_suit_cards = [card for card in player_hand if card.suit == asked_suit]
-    
-    # Si le joueur a des cartes de la couleur demandée, il doit en jouer une
+
+    # Si le joueur a des cartes de la couleur demandée, il doit en jouer une (ou l'Excuse)
     if same_suit_cards:
-        return same_suit_cards
+        return same_suit_cards + excuse_card
     
     # Si la couleur demandée n'est pas de l'atout et que le joueur a des atouts
     if asked_suit != trump_suit:
@@ -48,18 +51,18 @@ def get_legal_moves(player_hand: list[Card], current_trick: list[Card], trump_su
                 if highest_trump_in_trick is None or card.rank.get_value() > highest_trump_in_trick.rank.get_value():
                     highest_trump_in_trick = card
         
-        # Si un atout a déjà été joué, le joueur doit jouer un atout supérieur s'il en a
+        # Si un atout a déjà été joué, le joueur doit jouer un atout supérieur s'il en a (ou l'Excuse)
         if highest_trump_in_trick and trump_cards:
             minimum_trump= highest_trump_in_trick.rank.get_value()
             higher_trumps = [card for card in trump_cards if card.rank.get_value() > minimum_trump]
             if higher_trumps:
-                return higher_trumps
-        
+                return higher_trumps + excuse_card
+
         # Si le joueur a des atouts (et soit aucun atout n'a été joué, soit il n'a pas d'atouts supérieurs)
         if trump_cards:
-            return trump_cards
-    
-    # Sinon, le joueur peut jouer n'importe quelle carte (défausse)
+            return trump_cards + excuse_card
+
+    # Sinon, le joueur peut jouer n'importe quelle carte (défausse) - l'Excuse est déjà incluse dans player_hand
     return player_hand.copy()
 
 def get_trick_winner(trick: list[Card], trump_suit: Suit = Suit.TRUMP) -> int:

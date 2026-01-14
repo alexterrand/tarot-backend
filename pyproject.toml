@@ -17,6 +17,15 @@ dependencies = [
     "requests>=2.31.0",
     "supabase>=2.27.1",
     "python-dotenv>=1.2.1",
+    # Deep RL dependencies (V4)
+    "torch>=2.0.0",
+    "stable-baselines3>=2.2.0",
+    "sb3-contrib>=2.2.0",  # For MaskablePPO (action masking)
+    "gymnasium>=0.29.0",
+    "tensorboard>=2.14.0",
+    "numpy>=1.24.0",
+    "tqdm>=4.66.0",
+    "rich>=13.7.0",
 ]
 
 [project.scripts]

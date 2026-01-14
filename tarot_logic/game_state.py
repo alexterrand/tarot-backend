@@ -1,6 +1,8 @@
-from typing import List
+from typing import List, Optional
 from .card import Card, Suit
 from .player import Player
+from .bidding import BiddingRound
+from .contract import Contract
 
 class GameState:
     """
@@ -24,12 +26,16 @@ class GameState:
         self.current_player_index: int = 0
         self.current_trick: list[Card] = []
         self.dog: list[Card] = []
-        
+
         # Stocke les index des joueurs qui ont contribué au pli actuel
         self.trick_player_indices: list[int] = []
-        
+
         # Joueur qui a commencé le pli actuel
         self.trick_starter_index: int = 0
+
+        # Bidding and contract tracking
+        self.bidding_round: Optional[BiddingRound] = None
+        self.contract: Optional[Contract] = None
     
     def play_card(self, player_index: int, card: Card) -> None:
         """
@@ -122,9 +128,13 @@ class GameState:
     
     def count_oudlers(self, cards: List[Card]) -> int:
         """Count the number of oudlers in a list of cards."""
+        from .card import Rank
+
         oudlers = 0
         for card in cards:
-            if card.suit == Suit.ATOUT and card.value in [0, 1, 21]:
+            if card.suit == Suit.EXCUSE:
+                oudlers += 1
+            elif card.suit == Suit.TRUMP and card.rank in [Rank.TRUMP_1, Rank.TRUMP_21]:
                 oudlers += 1
         return oudlers
     
@@ -144,5 +154,41 @@ class GameState:
         taker_points = self.count_points(self.taker_cards)
         taker_oudlers = self.count_oudlers(self.taker_cards)
         points_needed = self.get_points_needed(taker_oudlers)
-        
+
         return taker_points > points_needed
+
+    def calculate_final_scores(self) -> dict[str, int]:
+        """
+        Calculate final scores based on contract results.
+
+        Returns:
+            Dictionary mapping player IDs to final scores
+        """
+        if self.contract is None:
+            # No contract, just count tricks won
+            return {
+                player.player_id: len(player.tricks_won) for player in self.players
+            }
+
+        # Calculate taker's points (tricks won + dog)
+        taker = self.get_player_by_id(self.contract.taker_id)
+        if not taker:
+            return {player.player_id: 0 for player in self.players}
+
+        # Collect all cards won by taker (tricks + dog)
+        taker_cards = []
+        for trick in taker.tricks_won:
+            taker_cards.extend(trick)
+        taker_cards.extend(self.dog)  # Dog counts for taker
+
+        taker_points = self.count_points(taker_cards)
+
+        # Use official Tarot scoring
+        from .scoring import calculate_player_scores
+        player_ids = [p.player_id for p in self.players]
+        return calculate_player_scores(
+            self.contract,
+            taker_points,
+            player_ids,
+            len(self.players)
+        )
